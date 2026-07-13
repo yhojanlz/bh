@@ -14,65 +14,29 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatPrice, useStore } from '@/lib/store'
 
-type PaymentMethod = 'binance' | 'pago-movil' | 'zelle'
-
-interface PaymentInfo {
-  id: PaymentMethod
-  label: string
-  description: string
-  accountLabel: string
-  accountValue: string
-  extra?: { label: string; value: string }
-}
-
-const PAYMENT_METHODS: PaymentInfo[] = [
-  {
-    id: 'binance',
-    label: 'Binance',
-    description: 'Transfiere USDT por red BNB Smart Chain (BEP20).',
-    accountLabel: 'Binance ID',
-    accountValue: '389123456',
-    extra: { label: 'Red', value: 'BNB Smart Chain (BEP20)' },
-  },
-  {
-    id: 'pago-movil',
-    label: 'Pago Móvil',
-    description: 'Pago móvil bancario venezolano (C2P).',
-    accountLabel: 'Teléfono',
-    accountValue: '0414-1234567',
-    extra: { label: 'Banco / Cédula', value: 'Banesco / V-12.345.678' },
-  },
-  {
-    id: 'zelle',
-    label: 'Zelle',
-    description: 'Envía el monto en USD a través de Zelle.',
-    accountLabel: 'Correo Zelle',
-    accountValue: 'athenea@zellepay.com',
-  },
-]
-
 interface CheckoutDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
-  const { cartTotal, cartCount, clearCart } = useStore()
-  const [method, setMethod] = useState<PaymentMethod | null>(null)
+  const { cartTotal, cartCount, clearCart, paymentMethods } = useStore()
+  const [methodId, setMethodId] = useState<string | null>(null)
   const [reference, setReference] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
-  const selected = PAYMENT_METHODS.find((m) => m.id === method)
+  const activeMethods = paymentMethods.filter((m) => m.active)
+  const selected = activeMethods.find((m) => m.id === methodId)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!method || !reference.trim()) return
+    if (!methodId || !reference.trim()) return
     setSubmitted(true)
   }
 
   const handleClose = () => {
     onOpenChange(false)
-    setMethod(null)
+    setMethodId(null)
     setReference('')
     setSubmitted(false)
   }
@@ -99,7 +63,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               <CardHeader>
                 <CardTitle className="text-base">Pago registrado</CardTitle>
                 <CardDescription>
-                  Hemos registrado tu referencia. Un administrador confirmará tu pago shortly.
+                  Hemos registrado tu referencia. Un administrador confirmará tu pago en breve.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2 text-sm">
@@ -121,22 +85,28 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               Aceptar
             </Button>
           </div>
+        ) : activeMethods.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              No hay métodos de pago disponibles. Contacta a la tienda para finalizar tu compra.
+            </CardContent>
+          </Card>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
               <Label>Método de pago</Label>
               <div className="grid gap-2">
-                {PAYMENT_METHODS.map((m) => (
+                {activeMethods.map((m) => (
                   <button
                     key={m.id}
                     type="button"
-                    onClick={() => setMethod(m.id)}
+                    onClick={() => setMethodId(m.id)}
                     className={`flex flex-col gap-0.5 rounded-lg border p-3 text-left transition-colors ${
-                      method === m.id
+                      methodId === m.id
                         ? 'border-foreground bg-muted'
                         : 'border-border hover:border-foreground'
                     }`}
-                    aria-pressed={method === m.id}
+                    aria-pressed={methodId === m.id}
                   >
                     <span className="text-sm font-medium">{m.label}</span>
                     <span className="text-xs text-muted-foreground">{m.description}</span>
@@ -155,10 +125,10 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
                     <span className="text-muted-foreground">{selected.accountLabel}</span>
                     <span className="font-medium">{selected.accountValue}</span>
                   </div>
-                  {selected.extra && (
+                  {selected.extraLabel && selected.extraValue && (
                     <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">{selected.extra.label}</span>
-                      <span className="font-medium">{selected.extra.value}</span>
+                      <span className="text-muted-foreground">{selected.extraLabel}</span>
+                      <span className="font-medium">{selected.extraValue}</span>
                     </div>
                   )}
                   <div className="flex justify-between gap-4 border-t border-border pt-2">
@@ -187,7 +157,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               <Button type="button" variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={!method || !reference.trim()}>
+              <Button type="submit" disabled={!methodId || !reference.trim()}>
                 Registrar pago
               </Button>
             </div>

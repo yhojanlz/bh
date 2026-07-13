@@ -24,22 +24,37 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PaymentForm } from '@/components/admin/payment-form'
 import { ProductForm } from '@/components/admin/product-form'
 import {
   DEPARTMENTS,
   formatPrice,
   useStore,
   type Department,
+  type PaymentMethod,
   type Product,
 } from '@/lib/store'
 
 export function AdminDashboard() {
-  const { products, categories, deleteProduct, addCategory, deleteCategory, resetCatalog, logout } =
-    useStore()
+  const {
+    products,
+    categories,
+    deleteProduct,
+    addCategory,
+    deleteCategory,
+    resetCatalog,
+    logout,
+    paymentMethods,
+    addPaymentMethod,
+    updatePaymentMethod,
+    deletePaymentMethod,
+  } = useStore()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryDep, setNewCategoryDep] = useState<Department>('mujer')
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [editingPayment, setEditingPayment] = useState<PaymentMethod | undefined>(undefined)
 
   const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? 'Sin categoría'
   const departmentLabel = (dep: Department) => DEPARTMENTS.find((d) => d.id === dep)?.label ?? dep
@@ -140,6 +155,7 @@ export function AdminDashboard() {
           <TabsList>
             <TabsTrigger value="productos">Productos</TabsTrigger>
             <TabsTrigger value="categorias">Categorías</TabsTrigger>
+            <TabsTrigger value="pagos">Pagos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="productos" className="mt-4">
@@ -275,6 +291,78 @@ export function AdminDashboard() {
               carrito.
             </p>
           </TabsContent>
+
+          <TabsContent value="pagos" className="mt-4 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Configura los métodos de pago que verán tus clientes al finalizar la compra.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditingPayment(undefined)
+                  setPaymentDialogOpen(true)
+                }}
+              >
+                <Plus className="size-3.5" />
+                Nuevo método
+              </Button>
+            </div>
+            {paymentMethods.length === 0 ? (
+              <Card>
+                <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                  No hay métodos de pago. Añade uno para que tus clientes puedan pagar.
+                </CardContent>
+              </Card>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {paymentMethods.map((m) => (
+                  <li key={m.id}>
+                    <Card>
+                      <CardContent className="flex items-center gap-4">
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium">{m.label}</p>
+                            <Badge variant={m.active ? 'default' : 'secondary'}>
+                              {m.active ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {m.accountLabel}: {m.accountValue}
+                            {m.extraLabel && m.extraValue
+                              ? ` · ${m.extraLabel}: ${m.extraValue}`
+                              : ''}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingPayment(m)
+                              setPaymentDialogOpen(true)
+                            }}
+                            aria-label={`Editar ${m.label}`}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => deletePaymentMethod(m.id)}
+                            aria-label={`Eliminar ${m.label}`}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -291,6 +379,25 @@ export function AdminDashboard() {
             </DialogDescription>
           </DialogHeader>
           <ProductForm product={editingProduct} onDone={() => setDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif font-normal">
+              {editingPayment ? `Editar: ${editingPayment.label}` : 'Nuevo método de pago'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingPayment
+                ? 'Modifica los datos y guarda los cambios.'
+                : 'Completa los datos del método de pago.'}
+            </DialogDescription>
+          </DialogHeader>
+          <PaymentForm
+            method={editingPayment}
+            onDone={() => setPaymentDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

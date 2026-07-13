@@ -33,6 +33,48 @@ export interface CartItem {
   quantity: number
 }
 
+export interface PaymentMethod {
+  id: string
+  label: string
+  description: string
+  accountLabel: string
+  accountValue: string
+  extraLabel?: string
+  extraValue?: string
+  active: boolean
+}
+
+const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
+  {
+    id: 'binance',
+    label: 'Binance',
+    description: 'Transfiere USDT por red BNB Smart Chain (BEP20).',
+    accountLabel: 'Binance ID',
+    accountValue: '389123456',
+    extraLabel: 'Red',
+    extraValue: 'BNB Smart Chain (BEP20)',
+    active: true,
+  },
+  {
+    id: 'pago-movil',
+    label: 'Pago Móvil',
+    description: 'Pago móvil bancario venezolano (C2P).',
+    accountLabel: 'Teléfono',
+    accountValue: '0414-1234567',
+    extraLabel: 'Banco / Cédula',
+    extraValue: 'Banesco / V-12.345.678',
+    active: true,
+  },
+  {
+    id: 'zelle',
+    label: 'Zelle',
+    description: 'Envía el monto en USD a través de Zelle.',
+    accountLabel: 'Correo Zelle',
+    accountValue: 'athenea@zellepay.com',
+    active: true,
+  },
+]
+
 const DEFAULT_CATEGORIES: Category[] = [
   { id: 'vestidos', name: 'Vestidos', department: 'mujer' },
   { id: 'deportivo', name: 'Deportivo', department: 'mujer' },
@@ -152,6 +194,7 @@ const LS_KEYS = {
   categories: 'athenea-categories',
   cart: 'athenea-cart',
   session: 'athenea-admin-session',
+  payments: 'athenea-payment-methods',
 } as const
 
 export const ADMIN_CREDENTIALS = {
@@ -181,6 +224,11 @@ interface StoreContextValue {
   addCategory: (name: string, department: Department) => void
   deleteCategory: (id: string) => void
   resetCatalog: () => void
+  // payment methods (admin)
+  paymentMethods: PaymentMethod[]
+  addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void
+  updatePaymentMethod: (id: string, changes: Partial<Omit<PaymentMethod, 'id'>>) => void
+  deletePaymentMethod: (id: string) => void
   // cart
   addToCart: (productId: string, size: string) => void
   updateCartQuantity: (productId: string, size: string, quantity: number) => void
@@ -201,6 +249,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS)
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES)
   const [cart, setCart] = useState<CartItem[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS)
   const [isAdmin, setIsAdmin] = useState(false)
 
   // Cargar desde localStorage al montar
@@ -208,6 +257,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProducts(loadFromStorage(LS_KEYS.products, DEFAULT_PRODUCTS))
     setCategories(loadFromStorage(LS_KEYS.categories, DEFAULT_CATEGORIES))
     setCart(loadFromStorage(LS_KEYS.cart, []))
+    setPaymentMethods(loadFromStorage(LS_KEYS.payments, DEFAULT_PAYMENT_METHODS))
     setIsAdmin(loadFromStorage(LS_KEYS.session, false))
     setReady(true)
   }, [])
@@ -222,6 +272,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (ready) window.localStorage.setItem(LS_KEYS.cart, JSON.stringify(cart))
   }, [cart, ready])
+  useEffect(() => {
+    if (ready) window.localStorage.setItem(LS_KEYS.payments, JSON.stringify(paymentMethods))
+  }, [paymentMethods, ready])
   useEffect(() => {
     if (ready) window.localStorage.setItem(LS_KEYS.session, JSON.stringify(isAdmin))
   }, [isAdmin, ready])
@@ -258,6 +311,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProducts(DEFAULT_PRODUCTS)
     setCategories(DEFAULT_CATEGORIES)
     setCart([])
+  }, [])
+
+  const addPaymentMethod = useCallback((method: Omit<PaymentMethod, 'id'>) => {
+    const id = `pm-${Date.now().toString(36)}`
+    setPaymentMethods((prev) => [...prev, { ...method, id }])
+  }, [])
+
+  const updatePaymentMethod = useCallback((id: string, changes: Partial<Omit<PaymentMethod, 'id'>>) => {
+    setPaymentMethods((prev) => prev.map((m) => (m.id === id ? { ...m, ...changes } : m)))
+  }, [])
+
+  const deletePaymentMethod = useCallback((id: string) => {
+    setPaymentMethods((prev) => prev.filter((m) => m.id !== id))
   }, [])
 
   const addToCart = useCallback((productId: string, size: string) => {
@@ -319,6 +385,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addCategory,
       deleteCategory,
       resetCatalog,
+      paymentMethods,
+      addPaymentMethod,
+      updatePaymentMethod,
+      deletePaymentMethod,
       addToCart,
       updateCartQuantity,
       removeFromCart,
@@ -340,6 +410,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addCategory,
       deleteCategory,
       resetCatalog,
+      paymentMethods,
+      addPaymentMethod,
+      updatePaymentMethod,
+      deletePaymentMethod,
       addToCart,
       updateCartQuantity,
       removeFromCart,
