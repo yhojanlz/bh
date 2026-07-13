@@ -7,18 +7,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ADMIN_CREDENTIALS, useStore } from '@/lib/store'
+import { useStore } from '@/lib/store'
 
 export function AdminLogin() {
   const { login } = useStore()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const ok = login(email, password)
-    if (!ok) setError('Correo o contraseña incorrectos.')
+    const ok = login(username, password)
+    if (!ok) setError('Usuario o contraseña incorrectos.')
   }
 
   return (
@@ -32,15 +32,14 @@ export function AdminLogin() {
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="username">Usuario</Label>
               <Input
-                id="email"
-                type="email"
+                id="username"
+                type="text"
                 required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={ADMIN_CREDENTIALS.email}
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -62,9 +61,6 @@ export function AdminLogin() {
             <Button type="submit" className="rounded-none uppercase tracking-[0.2em]">
               Entrar
             </Button>
-            <p className="text-center text-xs leading-relaxed text-muted-foreground">
-              Demo: {ADMIN_CREDENTIALS.email} / {ADMIN_CREDENTIALS.password}
-            </p>
             <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
               <Link href="/">
                 <ArrowLeft className="size-3.5" />

@@ -155,7 +155,7 @@ const LS_KEYS = {
 } as const
 
 export const ADMIN_CREDENTIALS = {
-  email: 'admin@athenea.com',
+  username: 'athenea123',
   password: 'athenea123',
 }
 
@@ -287,9 +287,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => setCart([]), [])
 
-  const login = useCallback((email: string, password: string) => {
+  const login = useCallback((username: string, password: string) => {
     const ok =
-      email.trim().toLowerCase() === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password
+      username.trim() === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password
     if (ok) setIsAdmin(true)
     return ok
   }, [])

@@ -12,7 +12,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { CheckoutDialog } from '@/components/checkout-dialog'
 import { formatPrice, useStore } from '@/lib/store'
+import { useState } from 'react'
 
 interface CartDrawerProps {
   open: boolean
@@ -22,6 +24,7 @@ interface CartDrawerProps {
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { cart, products, updateCartQuantity, removeFromCart, cartTotal, cartCount, clearCart } =
     useStore()
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
 
   const items = cart
     .map((item) => {
@@ -120,7 +123,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Total</p>
               <p className="font-serif text-xl">{formatPrice(cartTotal)}</p>
             </div>
-            <Button className="w-full rounded-none uppercase tracking-[0.2em]">
+            <Button
+              className="w-full rounded-none uppercase tracking-[0.2em]"
+              onClick={() => setCheckoutOpen(true)}
+            >
               Finalizar compra
             </Button>
             <Button
@@ -133,6 +139,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           </SheetFooter>
         )}
       </SheetContent>
+
+      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
     </Sheet>
   )
 }
