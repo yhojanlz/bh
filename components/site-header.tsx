@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Moon, ShoppingBag, Sun, UserRound } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants, Button } from '@/components/ui/button'
 import { useStore, DEPARTMENTS, type Department } from '@/lib/store'
 
 interface SiteHeaderProps {
@@ -58,11 +58,9 @@ export function SiteHeader({ department, onDepartmentChange, onOpenCart }: SiteH
               <Moon className="size-4" />
             )}
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin" aria-label="Panel de administración">
-              <UserRound className="size-4" />
-            </Link>
-          </Button>
+          <Link href="/admin" aria-label="Panel de administración" className={buttonVariants({ variant: 'ghost', size: 'icon' })}>
+            <UserRound className="size-4" />
+          </Link>
           <Button
             variant="ghost"
             size="icon"

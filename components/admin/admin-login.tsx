@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants, Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -61,12 +61,10 @@ export function AdminLogin() {
             <Button type="submit" className="rounded-none uppercase tracking-[0.2em]">
               Entrar
             </Button>
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
-              <Link href="/">
-                <ArrowLeft className="size-3.5" />
-                Volver a la tienda
-              </Link>
-            </Button>
+            <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'text-muted-foreground' })}>
+              <ArrowLeft className="size-3.5" />
+              Volver a la tienda
+            </Link>
           </form>
         </CardContent>
       </Card>

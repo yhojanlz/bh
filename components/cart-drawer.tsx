@@ -13,8 +13,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { CheckoutDialog } from '@/components/checkout-dialog'
-import { formatPrice, useStore } from '@/lib/store'
-import { useState } from 'react'
+import { useStore } from '@/lib/store'
+import { formatPrice } from '@/lib/utils'
+import { useMemo, useState } from 'react'
 
 interface CartDrawerProps {
   open: boolean
@@ -22,16 +23,20 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
-  const { cart, products, updateCartQuantity, removeFromCart, cartTotal, cartCount, clearCart } =
+  const { cart, productMap, updateCartQuantity, removeFromCart, cartTotal, cartCount, clearCart } =
     useStore()
   const [checkoutOpen, setCheckoutOpen] = useState(false)
 
-  const items = cart
-    .map((item) => {
-      const product = products.find((p) => p.id === item.productId)
-      return product ? { ...item, product } : null
-    })
-    .filter((i): i is NonNullable<typeof i> => i !== null)
+  const items = useMemo(
+    () =>
+      cart
+        .map((item) => {
+          const product = productMap.get(item.productId)
+          return product ? { ...item, product } : null
+        })
+        .filter((i): i is NonNullable<typeof i> => i !== null),
+    [cart, productMap],
+  )
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -140,7 +145,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         )}
       </SheetContent>
 
-      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      {checkoutOpen && (
+        <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      )}
     </Sheet>
   )
 }

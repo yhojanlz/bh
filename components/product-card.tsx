@@ -1,25 +1,32 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { formatPrice, useStore, type Product } from '@/lib/store'
+import { useStore, type Product } from '@/lib/store'
+import { formatPrice } from '@/lib/utils'
 
 interface ProductCardProps {
   product: Product
   categoryName: string
 }
 
-export function ProductCard({ product, categoryName }: ProductCardProps) {
+function ProductCardImpl({ product, categoryName }: ProductCardProps) {
   const { addToCart } = useStore()
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [added, setAdded] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [])
 
   const handleAdd = () => {
     const size = selectedSize ?? product.sizes[0] ?? 'Única'
     addToCart(product.id, size)
     setAdded(true)
-    setTimeout(() => setAdded(false), 1200)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setAdded(false), 1200)
   }
 
   return (
@@ -67,9 +74,12 @@ export function ProductCard({ product, categoryName }: ProductCardProps) {
         size="sm"
         onClick={handleAdd}
         className="rounded-none text-[11px] uppercase tracking-[0.2em]"
+        aria-live="polite"
       >
         {added ? 'Agregado' : 'Agregar al carrito'}
       </Button>
     </article>
   )
 }
+
+export const ProductCard = memo(ProductCardImpl)

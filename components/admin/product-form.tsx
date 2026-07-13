@@ -90,7 +90,7 @@ export function ProductForm({ product, onDone }: ProductFormProps) {
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="pf-category">Categoría</Label>
-          <Select value={categoryId} onValueChange={setCategoryId}>
+          <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
             <SelectTrigger id="pf-category" className="w-full">
               <SelectValue placeholder="Selecciona" />
             </SelectTrigger>

@@ -9,10 +9,31 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
-  title: 'Athenea Store — Elegancia en cada detalle',
+  title: {
+    default: 'Athenea Store — Elegancia en cada detalle',
+    template: '%s — Athenea Store',
+  },
   description:
     'Vestidos, deportivo, corsets, lencería y bikinis seleccionados para realzar tu estilo. Calidad premium, diseño atemporal.',
-  generator: 'v0.app',
+  metadataBase: new URL('https://athenea-store.vercel.app'),
+  keywords: ['moda', 'vestidos', 'lencería', 'bikinis', 'corsets', 'ropa femenina', 'Venezuela'],
+  openGraph: {
+    title: 'Athenea Store — Elegancia en cada detalle',
+    description:
+      'Vestidos, deportivo, corsets, lencería y bikinis seleccionados para realzar tu estilo.',
+    type: 'website',
+    locale: 'es_VE',
+    siteName: 'Athenea Store',
+    images: [{ url: '/images/hero.png', width: 1200, height: 630, alt: 'Athenea Store' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Athenea Store — Elegancia en cada detalle',
+    description:
+      'Vestidos, deportivo, corsets, lencería y bikinis seleccionados para realzar tu estilo.',
+    images: ['/images/hero.png'],
+  },
+  robots: { index: true, follow: true },
 }
 
 export const viewport: Viewport = {

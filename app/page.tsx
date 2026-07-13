@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { CartDrawer } from '@/components/cart-drawer'
 import { Hero } from '@/components/hero'
 import { ProductCard } from '@/components/product-card'
@@ -8,7 +8,7 @@ import { SiteHeader } from '@/components/site-header'
 import { useStore, type Department } from '@/lib/store'
 
 export default function HomePage() {
-  const { products, categories } = useStore()
+  const { products, categories, ready } = useStore()
   const [department, setDepartment] = useState<Department>('mujer')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
@@ -19,6 +19,17 @@ export default function HomePage() {
     [categories, department],
   )
 
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const c of categories) map.set(c.id, c.name)
+    return map
+  }, [categories])
+
+  const categoryName = useCallback(
+    (id: string) => categoryMap.get(id) ?? '',
+    [categoryMap],
+  )
+
   const visibleProducts = useMemo(() => {
     const categoryIds = departmentCategories.map((c) => c.id)
     return products.filter((p) => {
@@ -27,12 +38,10 @@ export default function HomePage() {
     })
   }, [products, departmentCategories, selectedCategory])
 
-  const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? ''
-
-  const handleDepartmentChange = (dep: Department) => {
+  const handleDepartmentChange = useCallback((dep: Department) => {
     setDepartment(dep)
     setSelectedCategory(null)
-  }
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -64,6 +73,7 @@ export default function HomePage() {
                   ? 'border-foreground bg-foreground text-background'
                   : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
               }`}
+              aria-pressed={selectedCategory === null}
             >
               Todo
             </button>
@@ -77,16 +87,36 @@ export default function HomePage() {
                     ? 'border-foreground bg-foreground text-background'
                     : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
                 }`}
+                aria-pressed={selectedCategory === cat.id}
               >
                 {cat.name}
               </button>
             ))}
           </nav>
 
-          {visibleProducts.length === 0 ? (
-            <p className="mt-12 text-center text-sm text-muted-foreground">
-              No hay productos en esta categoría todavía.
-            </p>
+          {!ready ? (
+            <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-3">
+                  <div className="aspect-[3/4] w-full animate-pulse bg-secondary" />
+                  <div className="h-3 w-2/3 animate-pulse bg-secondary" />
+                  <div className="h-3 w-1/3 animate-pulse bg-secondary" />
+                </div>
+              ))}
+            </div>
+          ) : visibleProducts.length === 0 ? (
+            <div className="mt-12 flex flex-col items-center gap-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                No hay productos en esta categoría todavía.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedCategory(null)}
+                className="border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] transition-colors hover:border-foreground"
+              >
+                Ver todo
+              </button>
+            </div>
           ) : (
             <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
               {visibleProducts.map((product) => (

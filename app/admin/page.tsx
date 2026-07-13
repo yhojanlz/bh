@@ -1,8 +1,17 @@
 'use client'
 
-import { AdminDashboard } from '@/components/admin/admin-dashboard'
-import { AdminLogin } from '@/components/admin/admin-login'
+import dynamic from 'next/dynamic'
 import { useStore } from '@/lib/store'
+
+const AdminDashboard = dynamic(
+  () => import('@/components/admin/admin-dashboard').then((m) => m.AdminDashboard),
+  { ssr: false },
+)
+
+const AdminLogin = dynamic(
+  () => import('@/components/admin/admin-login').then((m) => m.AdminLogin),
+  { ssr: false },
+)
 
 export default function AdminPage() {
   const { ready, isAdmin } = useStore()

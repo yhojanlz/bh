@@ -215,6 +215,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 interface StoreContextValue {
   ready: boolean
   products: Product[]
+  productMap: Map<string, Product>
   categories: Category[]
   cart: CartItem[]
   // catalog (admin)
@@ -299,13 +300,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const deleteCategory = useCallback((id: string) => {
+    const removedIds = products.filter((p) => p.categoryId === id).map((p) => p.id)
     setCategories((prev) => prev.filter((c) => c.id !== id))
-    setProducts((prev) => {
-      const removedIds = prev.filter((p) => p.categoryId === id).map((p) => p.id)
+    setProducts((prev) => prev.filter((p) => p.categoryId !== id))
+    if (removedIds.length > 0) {
       setCart((prevCart) => prevCart.filter((item) => !removedIds.includes(item.productId)))
-      return prev.filter((p) => p.categoryId !== id)
-    })
-  }, [])
+    }
+  }, [products])
 
   const resetCatalog = useCallback(() => {
     setProducts(DEFAULT_PRODUCTS)
@@ -364,19 +365,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const cartCount = useMemo(() => cart.reduce((acc, i) => acc + i.quantity, 0), [cart])
 
+  const productMap = useMemo(() => {
+    const map = new Map<string, Product>()
+    for (const p of products) map.set(p.id, p)
+    return map
+  }, [products])
+
   const cartTotal = useMemo(
-    () =>
-      cart.reduce((acc, i) => {
-        const product = products.find((p) => p.id === i.productId)
-        return acc + (product ? product.price * i.quantity : 0)
-      }, 0),
-    [cart, products],
+    () => cart.reduce((acc, i) => {
+      const product = productMap.get(i.productId)
+      return acc + (product ? product.price * i.quantity : 0)
+    }, 0),
+    [cart, productMap],
   )
 
   const value = useMemo<StoreContextValue>(
     () => ({
       ready,
       products,
+      productMap,
       categories,
       cart,
       addProduct,
@@ -402,6 +409,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [
       ready,
       products,
+      productMap,
       categories,
       cart,
       addProduct,
@@ -435,6 +443,4 @@ export function useStore() {
   return ctx
 }
 
-export function formatPrice(price: number) {
-  return `$${price.toFixed(2)}`
-}
+

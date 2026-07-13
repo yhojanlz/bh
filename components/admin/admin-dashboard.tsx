@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ArrowLeft, LogOut, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { buttonVariants, Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
@@ -28,12 +28,12 @@ import { PaymentForm } from '@/components/admin/payment-form'
 import { ProductForm } from '@/components/admin/product-form'
 import {
   DEPARTMENTS,
-  formatPrice,
   useStore,
   type Department,
   type PaymentMethod,
   type Product,
 } from '@/lib/store'
+import { formatPrice } from '@/lib/utils'
 
 export function AdminDashboard() {
   const {
@@ -93,12 +93,10 @@ export function AdminDashboard() {
             </Badge>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="size-3.5" />
-                Ver tienda
-              </Link>
-            </Button>
+            <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+              <ArrowLeft className="size-3.5" />
+              Ver tienda
+            </Link>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="size-3.5" />
               Salir
